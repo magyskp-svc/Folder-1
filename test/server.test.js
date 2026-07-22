@@ -4,19 +4,23 @@ const { spawn } = require('node:child_process');
 const path = require('node:path');
 
 function startServer() {
-  return spawn(process.execPath, ['server.js'], {
+  const port = 3100 + Math.floor(Math.random() * 1000);
+  const child = spawn(process.execPath, ['server.js'], {
     cwd: path.join(__dirname, '..'),
-    env: { ...process.env, PORT: '3100', NODE_ENV: 'test' },
+    env: { ...process.env, PORT: String(port), NODE_ENV: 'test' },
     stdio: ['ignore', 'pipe', 'pipe']
   });
+
+  return { child, port };
 }
 
 test('health endpoint returns ok', async () => {
-  const child = startServer();
+  const server = startServer();
+  const child = server.child;
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const response = await fetch('http://127.0.0.1:3100/health');
+  const response = await fetch(`http://127.0.0.1:${server.port}/health`);
   const body = await response.json();
 
   assert.equal(response.status, 200);
@@ -26,11 +30,12 @@ test('health endpoint returns ok', async () => {
 });
 
 test('admin login succeeds with valid credentials', async () => {
-  const child = startServer();
+  const server = startServer();
+  const child = server.child;
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const response = await fetch('http://127.0.0.1:3100/api/login', {
+  const response = await fetch(`http://127.0.0.1:${server.port}/api/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: 'admin', password: 'Admin@123' })
@@ -45,12 +50,13 @@ test('admin login succeeds with valid credentials', async () => {
 });
 
 test('student creation requires explicit consent', async () => {
-  const child = startServer();
+  const server = startServer();
+  const child = server.child;
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const authHeader = Buffer.from('admin:Admin@123').toString('base64');
-  const response = await fetch('http://127.0.0.1:3100/api/students', {
+  const response = await fetch(`http://127.0.0.1:${server.port}/api/students`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -76,11 +82,12 @@ test('student creation requires explicit consent', async () => {
 });
 
 test('student records are not exposed without authentication', async () => {
-  const child = startServer();
+  const server = startServer();
+  const child = server.child;
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const response = await fetch('http://127.0.0.1:3100/api/students');
+  const response = await fetch(`http://127.0.0.1:${server.port}/api/students`);
   assert.equal(response.status, 401);
   const body = await response.json();
   assert.match(body.error, /authentication required/i);
@@ -89,12 +96,13 @@ test('student records are not exposed without authentication', async () => {
 });
 
 test('admin can list registered users', async () => {
-  const child = startServer();
+  const server = startServer();
+  const child = server.child;
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const authHeader = Buffer.from('admin:Admin@123').toString('base64');
-  const response = await fetch('http://127.0.0.1:3100/api/users', {
+  const response = await fetch(`http://127.0.0.1:${server.port}/api/users`, {
     headers: { Authorization: `Basic ${authHeader}` }
   });
 
@@ -108,12 +116,13 @@ test('admin can list registered users', async () => {
 });
 
 test('admin can create a user with a role', async () => {
-  const child = startServer();
+  const server = startServer();
+  const child = server.child;
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const authHeader = Buffer.from('admin:Admin@123').toString('base64');
-  const response = await fetch('http://127.0.0.1:3100/api/users', {
+  const response = await fetch(`http://127.0.0.1:${server.port}/api/users`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
