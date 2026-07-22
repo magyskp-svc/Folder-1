@@ -1,0 +1,13 @@
+{
+  "name": "school-student-manager",
+  "version": "1.0.0",
+  "description": "Starter CRUD project for school student records",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "express": "^4.19.2"
+  }
+}
