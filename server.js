@@ -1,15 +1,25 @@
 const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
 const Database = require('better-sqlite3');
 const path = require('path');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
-const db = new Database('students.db');
+const port = Number(process.env.PORT || 3000);
+const dbPath = process.env.DB_PATH || 'students.db';
+const db = new Database(dbPath);
 
-app.use(express.json());
+app.set('trust proxy', 1);
+app.use(helmet());
+app.use(cors({ origin: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname)));
 
- db.prepare(`
+db.prepare(`
   CREATE TABLE IF NOT EXISTS students (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -21,6 +31,10 @@ app.use(express.static(path.join(__dirname)));
     address TEXT NOT NULL
   )
 `).run();
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', environment: process.env.NODE_ENV || 'development' });
+});
 
 app.get('/api/students', (req, res) => {
   const students = db.prepare('SELECT * FROM students ORDER BY id ASC').all();
@@ -85,6 +99,15 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(port, () => {
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+const server = app.listen(port, () => {
   console.log(`Student manager running at http://localhost:${port}`);
+});
+
+process.on('SIGTERM', () => {
+  server.close(() => process.exit(0));
 });

@@ -2,6 +2,7 @@ const form = document.getElementById('studentForm');
 const studentIdInput = document.getElementById('studentId');
 const submitBtn = document.getElementById('submitBtn');
 const cancelBtn = document.getElementById('cancelEdit');
+const closePageBtn = document.getElementById('closePageBtn');
 const messageBox = document.getElementById('message');
 const tableBody = document.getElementById('studentTableBody');
 
@@ -83,6 +84,14 @@ form.addEventListener('submit', async (event) => {
 });
 
 cancelBtn.addEventListener('click', resetForm);
+
+closePageBtn.addEventListener('click', () => {
+  try {
+    window.close();
+  } catch (error) {
+    window.location.href = 'about:blank';
+  }
+});
 
 document.addEventListener('click', async (event) => {
   const editButton = event.target.closest('.edit-btn');
