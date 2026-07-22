@@ -101,6 +101,35 @@ app.post('/api/login', (req, res) => {
   res.json({ message: 'Login successful', user: { username: user.username, role: user.role } });
 });
 
+app.get('/api/users', authenticateUser, authorizeRole(['admin']), (req, res) => {
+  const users = db.prepare('SELECT id, username, role FROM users ORDER BY id ASC').all();
+  res.json(users);
+});
+
+app.post('/api/users', authenticateUser, authorizeRole(['admin']), (req, res) => {
+  const { username, password, role } = req.body;
+
+  if (!username || !password || !role) {
+    return res.status(400).json({ error: 'Username, password, and role are required.' });
+  }
+
+  const allowedRoles = ['admin', 'teacher', 'student', 'parent'];
+  if (!allowedRoles.includes(role)) {
+    return res.status(400).json({ error: 'Role must be admin, teacher, student, or parent.' });
+  }
+
+  try {
+    const result = db.prepare('INSERT INTO users (username, password, role) VALUES (?, ?, ?)').run(username, password, role);
+    const user = db.prepare('SELECT id, username, role FROM users WHERE id = ?').get(result.lastInsertRowid);
+    res.status(201).json(user);
+  } catch (error) {
+    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      return res.status(409).json({ error: 'User already exists.' });
+    }
+    throw error;
+  }
+});
+
 app.get('/api/students', authenticateUser, authorizeRole(['admin', 'teacher']), (req, res) => {
   const students = db.prepare('SELECT * FROM students ORDER BY id ASC').all();
   res.json(students);
