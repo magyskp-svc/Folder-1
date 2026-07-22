@@ -43,3 +43,34 @@ test('admin login succeeds with valid credentials', async () => {
 
   child.kill();
 });
+
+test('student creation requires explicit consent', async () => {
+  const child = startServer();
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  const authHeader = Buffer.from('admin:Admin@123').toString('base64');
+  const response = await fetch('http://127.0.0.1:3100/api/students', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${authHeader}`
+    },
+    body: JSON.stringify({
+      name: 'Ava',
+      className: '10-A',
+      rollNumber: '999',
+      age: 15,
+      phone: '5550001',
+      email: 'ava@example.com',
+      address: 'London',
+      consentGiven: false
+    })
+  });
+
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.match(body.error, /consent/i);
+
+  child.kill();
+});
