@@ -18,6 +18,7 @@ function resetForm() {
   studentIdInput.value = '';
   submitBtn.textContent = 'Add Student';
   cancelBtn.classList.add('hidden');
+  document.getElementById('consentGiven').checked = false;
 }
 
 async function loadStudents() {
@@ -60,6 +61,7 @@ form.addEventListener('submit', async (event) => {
     phone: document.getElementById('phone').value.trim(),
     email: document.getElementById('email').value.trim(),
     address: document.getElementById('address').value.trim(),
+    consentGiven: document.getElementById('consentGiven').checked,
   };
 
   const id = studentIdInput.value;

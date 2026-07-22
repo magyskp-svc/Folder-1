@@ -107,10 +107,14 @@ app.get('/api/students', authenticateUser, authorizeRole(['admin', 'teacher']), 
 });
 
 app.post('/api/students', authenticateUser, authorizeRole(['admin', 'teacher']), (req, res) => {
-  const { name, className, rollNumber, age, phone, email, address } = req.body;
+  const { name, className, rollNumber, age, phone, email, address, consentGiven } = req.body;
 
   if (!name || !className || !rollNumber || !age || !phone || !email || !address) {
     return res.status(400).json({ error: 'All fields are required.' });
+  }
+
+  if (consentGiven !== true) {
+    return res.status(400).json({ error: 'Explicit consent is required before saving personal data.' });
   }
 
   const stmt = db.prepare(`
@@ -126,10 +130,14 @@ app.post('/api/students', authenticateUser, authorizeRole(['admin', 'teacher']),
 
 app.put('/api/students/:id', authenticateUser, authorizeRole(['admin', 'teacher']), (req, res) => {
   const { id } = req.params;
-  const { name, className, rollNumber, age, phone, email, address } = req.body;
+  const { name, className, rollNumber, age, phone, email, address, consentGiven } = req.body;
 
   if (!name || !className || !rollNumber || !age || !phone || !email || !address) {
     return res.status(400).json({ error: 'All fields are required.' });
+  }
+
+  if (consentGiven !== true) {
+    return res.status(400).json({ error: 'Explicit consent is required before updating personal data.' });
   }
 
   const stmt = db.prepare(`

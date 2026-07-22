@@ -124,6 +124,26 @@ input::placeholder, textarea::placeholder {
   margin-top: 12px;
 }
 
+.consent-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  font-weight: 500;
+  color: #dfeeff;
+}
+
+.consent-row input {
+  width: auto;
+  margin: 0;
+}
+
+.privacy-note {
+  margin-top: 10px;
+  font-size: 0.92rem;
+  color: #c7d8ee;
+}
+
 .message {
   min-height: 24px;
   margin: 10px 0;

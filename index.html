@@ -53,10 +53,16 @@
             <textarea id="address" rows="3" placeholder="Enter address" required></textarea>
           </label>
 
+          <label class="consent-row">
+            <input type="checkbox" id="consentGiven" />
+            <span>I consent to storing and processing this student data for school administration purposes.</span>
+          </label>
+
           <div class="actions">
             <button type="submit" id="submitBtn">Add Student</button>
             <button type="button" id="cancelEdit" class="secondary hidden">Cancel Edit</button>
           </div>
+          <p class="privacy-note">Your data is stored securely, used only for school administration, and can be deleted on request.</p>
         </form>
       </div>
 
