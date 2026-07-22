@@ -74,3 +74,58 @@ test('student creation requires explicit consent', async () => {
 
   child.kill();
 });
+
+test('student records are not exposed without authentication', async () => {
+  const child = startServer();
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  const response = await fetch('http://127.0.0.1:3100/api/students');
+  assert.equal(response.status, 401);
+  const body = await response.json();
+  assert.match(body.error, /authentication required/i);
+
+  child.kill();
+});
+
+test('admin can list registered users', async () => {
+  const child = startServer();
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  const authHeader = Buffer.from('admin:Admin@123').toString('base64');
+  const response = await fetch('http://127.0.0.1:3100/api/users', {
+    headers: { Authorization: `Basic ${authHeader}` }
+  });
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.ok(Array.isArray(body));
+  assert.ok(body.some((user) => user.username === 'admin' && user.role === 'admin'));
+  assert.equal(body[0].password, undefined);
+
+  child.kill();
+});
+
+test('admin can create a user with a role', async () => {
+  const child = startServer();
+
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  const authHeader = Buffer.from('admin:Admin@123').toString('base64');
+  const response = await fetch('http://127.0.0.1:3100/api/users', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Basic ${authHeader}`
+    },
+    body: JSON.stringify({ username: 'parent2', password: 'Parent@456', role: 'parent' })
+  });
+
+  assert.equal(response.status, 201);
+  const body = await response.json();
+  assert.equal(body.username, 'parent2');
+  assert.equal(body.role, 'parent');
+
+  child.kill();
+});

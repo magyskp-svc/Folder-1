@@ -22,32 +22,12 @@ function resetForm() {
 }
 
 async function loadStudents() {
-  const response = await fetch('/api/students');
-  students = await response.json();
+  students = [];
   renderStudents();
 }
 
 function renderStudents() {
-  if (!students.length) {
-    tableBody.innerHTML = '<tr><td colspan="8" class="empty">No students added yet.</td></tr>';
-    return;
-  }
-
-  tableBody.innerHTML = students.map((student) => `
-    <tr>
-      <td>${student.id}</td>
-      <td>${student.name}</td>
-      <td>${student.class_name}</td>
-      <td>${student.roll_number}</td>
-      <td>${student.age}</td>
-      <td>${student.phone}</td>
-      <td>${student.email}</td>
-      <td>
-        <button class="edit-btn" data-id="${student.id}">Edit</button>
-        <button class="delete-btn" data-id="${student.id}">Delete</button>
-      </td>
-    </tr>
-  `).join('');
+  tableBody.innerHTML = '<tr><td colspan="8" class="empty">Saved student details remain private and are not displayed on this public page.</td></tr>';
 }
 
 form.addEventListener('submit', async (event) => {
